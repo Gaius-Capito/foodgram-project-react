@@ -21,12 +21,6 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet для работы с моделью Recipe.
-    Предоставляет операции CRUD и пагинацию.
-    Реализует фильтрацию с использованием RecipeFilter.
-    Авторизация происходит с помощью IsAuthorOrReadOnly.
-    """
     queryset = Recipe.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
@@ -36,9 +30,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class TagViewSet(ListRetrieveViewSet):
-    """
-    ViewSet для работы с моделью Tag.
-    """
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
@@ -46,36 +37,24 @@ class TagViewSet(ListRetrieveViewSet):
 
 
 class IngredientViewSet(ListRetrieveViewSet):
-    """
-    ViewSet для работы с моделью Ingredient.
-    """
     queryset = Ingredient.objects.all()
-    serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
-    filterset_class = IngredientFilter
+    serializer_class = IngredientSerializer
+    pagination_class = None
+    filter_backends = (IngredientFilter,)
+    search_fields = ('^name',)
 
 
 class SubscriptionsViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet для работы с моделью Subscribe.
-    Доступны операции CRUD и паджинация.
-    """
     serializer_class = SubscribeSerializer
     permission_classes = [IsAuthenticated, ]
     pagination_class = PageLimitPagination
 
     def get_queryset(self):
-        """
-        Возвращает подписки текущего пользователя с
-        предварительной загрузкой авторов.
-        """
         return Subscribe.objects.filter(
             user=self.request.user).prefetch_related('author')
 
 class SubscribeAPIView(APIView):
-    """
-    Класс для создания и удаления подписок
-    """
     permission_classes = [IsAuthenticated, ]
 
     def post(self, request, author_id):
@@ -139,11 +118,6 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 
 
 class ShoppingCartViewSet(CreateDestroyViewSet):
-    """
-    ViewSet для работы с моделью ShoppingCart.
-    Предоставляет операции создания и удаления объектов.
-    Требует аутентификации пользователя.
-    """
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
     permission_classes = [IsAuthenticated, ]
@@ -171,10 +145,6 @@ class ShoppingCartViewSet(CreateDestroyViewSet):
 
 
 class DownloadShoppingCart(APIView):
-    """
-        Класс для загрузки списка покупок в виде текстового файла.
-        Требует аутентификации пользователя.
-        """
     permission_classes = [IsAuthenticated,]
 
     def get(self, request):
