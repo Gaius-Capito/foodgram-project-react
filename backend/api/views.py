@@ -54,6 +54,7 @@ class SubscriptionsViewSet(viewsets.ModelViewSet):
         return Subscribe.objects.filter(
             user=self.request.user).prefetch_related('author')
 
+
 class SubscribeAPIView(APIView):
     permission_classes = [IsAuthenticated, ]
 

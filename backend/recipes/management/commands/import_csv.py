@@ -28,4 +28,3 @@ class Command(BaseCommand):
             Ingredient.objects.bulk_create(upload_list)
             self.stdout.write(
                 self.style.SUCCESS('Данные успешно загружены'))
-
