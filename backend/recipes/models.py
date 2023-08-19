@@ -1,4 +1,3 @@
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 from users.models import User
@@ -8,8 +7,8 @@ class Tag(models.Model):
     name = models.CharField(
         verbose_name='Тег',
         max_length=200,
-        unique=True,
-        validators=[UnicodeUsernameValidator])
+        unique=True
+    )
     slug = models.SlugField(
         verbose_name='Слаг',
         max_length=120,
@@ -53,7 +52,7 @@ class Recipe(models.Model):
         default=None,
         verbose_name='Изображение'
     )
-    description = models.TextField('Описание')
+    text = models.TextField('Описание')
     tags = models.ManyToManyField(Tag, verbose_name='Теги')
     cooking_time = models.PositiveSmallIntegerField(
         default=1,
@@ -64,10 +63,6 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        constraints = [
-            models.UniqueConstraint(fields=['author', 'name'],
-                                    name='unique_author_recipename')
-        ]
 
     def __str__(self):
         return self.name
@@ -98,12 +93,12 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
         verbose_name='Владелец списка покупок',
-        related_name='shopping_cart'
+        related_name='shopping_carts'
     )
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='shopping_cart_recipe'
+        related_name='shopping_carts'
     )
 
     def __str__(self):
@@ -123,7 +118,7 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
         verbose_name='Добавил в избранное',
-        related_name='favorite_recipe'
+        related_name='favorite'
     )
 
     class Meta:

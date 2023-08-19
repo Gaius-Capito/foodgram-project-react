@@ -61,7 +61,7 @@ class SubscribeAPIView(APIView):
         author = get_object_or_404(User, id=author_id)
         if request.user == author:
             return Response(
-                {'errors': 'Вы не можете подписаться на самого себя'},
+                {'errors': 'Подписка на самого себя невозможна'},
                 status=status.HTTP_400_BAD_REQUEST)
         subscription = Subscribe.objects.filter(
             author=author, user=request.user)
@@ -81,7 +81,7 @@ class SubscribeAPIView(APIView):
             author=author, user=user)
         if not subscription.exists():
             return Response(
-                {'errors': 'Вы еще не подписаны на этого автора'},
+                {'errors': 'Вы не подписаны на этого автора'},
                 status=status.HTTP_400_BAD_REQUEST)
         subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -108,7 +108,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not Favorite.objects.filter(recipe=recipe,
                                        user=user).exists():
-            return Response({'errors': 'Рецепт не в избранном'},
+            return Response({'errors': 'Рецепт не добавлен в избранное'},
                             status=status.HTTP_400_BAD_REQUEST)
         get_object_or_404(
             Favorite,
@@ -160,7 +160,7 @@ class DownloadShoppingCart(APIView):
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount')).order_by()
 
-        text = 'Список покупок:\n\n'
+        text = 'Список покупок:\n'
         for item in ingredients:
             text += (
                 f'{item["ingredient__name"]} - '

@@ -6,6 +6,9 @@ from recipes.models import (Favorite, Ingredient, IngredientInRecipe,
                             Recipe, ShoppingCart, Tag)
 from users.models import Subscribe, User
 
+from .validators import (validate_cooking_time, validate_ingredients,
+                         validate_tags)
+
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
@@ -35,24 +38,14 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        source='recipe',
-        queryset=Recipe.objects.all()
-    )
-    name = serializers.StringRelatedField(source='recipe.name')
-    image = serializers.FileField(source='recipe.image')
-    cooking_time = serializers.IntegerField(source='recipe.cooking_time')
+    id = serializers.ReadOnlyField(source='recipe.id')
+    name = serializers.ReadOnlyField(source='recipe.name')
+    image = serializers.CharField(source='recipe.image', read_only=True)
+    cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')
 
     class Meta:
         fields = ('id', 'name', 'image', 'cooking_time')
         model = Favorite
-
-        validators = [
-            validators.UniqueTogetherValidator(
-                queryset=Favorite.objects.all(),
-                fields=('user', 'recipe')
-            )
-        ]
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -114,6 +107,9 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для работы с моделью Recipe.
+    """
     author = UserSerializer(read_only=True)
     tags = TagSerializer(read_only=True, many=True)
     ingredients = serializers.SerializerMethodField(read_only=True)
@@ -127,7 +123,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id', 'tags', 'author',
             'ingredients', 'is_favorited',
             'is_in_shopping_cart', 'name',
-            'image', 'description', 'cooking_time')
+            'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
@@ -147,19 +143,26 @@ class RecipeSerializer(serializers.ModelSerializer):
         queryset = IngredientInRecipe.objects.filter(recipe=obj)
         return IngredientInRecipeSerializer(queryset, many=True).data
 
-    def validate_ingredients(self, value):
-        if len(value) < 1:
-            raise serializers.ValidationError(
-                "Необходимо добавить ингредиенты."
-            )
-        return value
+    def validate(self, data):
+        tags = self.initial_data.get('tags')
+        ingredients = self.initial_data.get('ingredients')
+        cooking_time = data.get('cooking_time')
 
-    def validate_tags(self, value):
-        if len(value) < 1:
-            raise serializers.ValidationError(
-                "Необходимо добавить теги."
-            )
-        return value
+        if not tags:
+            raise serializers.ValidationError({
+                'tags': 'Кажется вы забыли указать тэги'})
+        if not ingredients:
+            raise serializers.ValidationError({
+                'ingredients': 'Кажется вы забыли указать ингредиенты'})
+        validate_tags(tags, Tag)
+        validate_ingredients(ingredients, Ingredient)
+        validate_cooking_time(cooking_time)
+        data.update({
+            'tags': tags,
+            'ingredients': ingredients,
+            'author': self.context.get('request').user
+        })
+        return data
 
     def create(self, validated_data):
         tags = self.validated_data.pop('tags')
@@ -167,7 +170,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         new_recipe = Recipe.objects.create(
             name=self.validated_data.pop('name'),
             image=self.validated_data.pop('image'),
-            description=self.validated_data.pop('description'),
+            text=self.validated_data.pop('text'),
             cooking_time=self.validated_data.pop('cooking_time'),
             author=self.validated_data.pop('author'))
         new_recipe.tags.add(*tags)
@@ -187,7 +190,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         instance.image = validated_data.get('image', instance.image)
         instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get('description', instance.description)
+        instance.text = validated_data.get('text', instance.text)
         instance.cooking_time = validated_data.get(
             'cooking_time', instance.cooking_time)
         instance.save()
