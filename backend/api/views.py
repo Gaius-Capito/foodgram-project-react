@@ -68,7 +68,7 @@ class SubscribeAPIView(APIView):
             author=author, user=request.user)
         if subscription.exists():
             return Response(
-                {'errors': 'Вы уже подписаны на этого автора'},
+                {'errors': 'Вы подписаны на этого автора'},
                 status=status.HTTP_400_BAD_REQUEST)
         queryset = Subscribe.objects.create(author=author, user=request.user)
         serializer = SubscribeSerializer(
@@ -146,7 +146,7 @@ class ShoppingCartViewSet(CreateDestroyViewSet):
 
 
 class DownloadShoppingCart(APIView):
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
         if not ShoppingCart.objects.filter(user=request.user).exists():

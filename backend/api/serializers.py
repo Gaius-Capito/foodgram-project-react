@@ -140,7 +140,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     def validate(self, data):
         tags = self.initial_data.get('tags')
         ingredients = self.initial_data.get('ingredients')
-        cooking_time = data.get('cooking_time')
 
         if not tags:
             raise serializers.ValidationError({

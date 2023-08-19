@@ -11,7 +11,7 @@ class Command(BaseCommand):
     help = 'Команда import_csv добавляет данные в базу данных из csv файлов.'
 
     def handle(self, *args, **options):
-        csv_file = Path(settings.BASE_DIR)/'data'/'ingredients.csv'
+        csv_file = Path(settings.BASE_DIR) / 'data' / 'ingredients.csv'
         if not csv_file.exists():
             raise CommandError(f'Файл {csv_file} не существует.')
 
