@@ -17,7 +17,7 @@ from .pagination import PageLimitPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeSerializer, ShoppingCartSerializer,
-                          SubscribeSerializer, TagSerializer)
+                          SubscribeGetSerializer, SubscribeCreateDeleteSerializer, TagSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -46,7 +46,7 @@ class IngredientViewSet(ListRetrieveViewSet):
 
 
 class SubscriptionsViewSet(viewsets.ModelViewSet):
-    serializer_class = SubscribeSerializer
+    serializer_class = SubscribeGetSerializer
     permission_classes = [IsAuthenticated, ]
     pagination_class = PageLimitPagination
 
@@ -71,7 +71,7 @@ class SubscribeAPIView(APIView):
                 {'errors': 'Вы подписаны на этого автора'},
                 status=status.HTTP_400_BAD_REQUEST)
         queryset = Subscribe.objects.create(author=author, user=request.user)
-        serializer = SubscribeSerializer(
+        serializer = SubscribeCreateDeleteSerializer(
             queryset, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

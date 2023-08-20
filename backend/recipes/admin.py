@@ -23,8 +23,23 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'name',
-        'author')
+        'author',
+        'ingredient_list',
+        'favorite_count',
+    )
     list_filter = ('name', 'author', 'tags',)
+
+    def ingredient_list(self, obj):
+        ingredients = ', '.join([str(ingredient) for ingredient in
+                                 obj.ingredients.all()])
+        return ingredients
+
+    ingredient_list.short_description = 'Ингредиенты'
+
+    def favorite_count(self, obj):
+        return obj.favorite.count()
+
+    favorite_count.short_description = 'Количество добавлений в Избранное'
 
 
 class TagAdmin(admin.ModelAdmin):

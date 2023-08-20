@@ -1,18 +1,30 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import Subscribe, User
+from users.models import Subscribe, User
 
 
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin):
     list_display = (
         'id',
         'username',
         'email',
         'first_name',
-        'last_name',
-        'password',
+        'recipe_count',
+        'follower_count',
     )
+
+    def recipe_count(self, obj):
+        return obj.recipe.count()
+
+    recipe_count.short_description = 'Количество рецептов'
+
     list_filter = ('username',)
+
+    def follower_count(self, obj):
+        return obj.author.count()
+
+    follower_count.short_description = 'Количество подписчиков'
 
 
 class SubscribeAdmin(admin.ModelAdmin):

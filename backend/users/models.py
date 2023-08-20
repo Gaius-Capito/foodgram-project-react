@@ -3,34 +3,43 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 from api.validators import validate_real_name
+from recipes import constants
 
 
 class User(AbstractUser):
     username = models.CharField(
         'Логин',
-        max_length=150,
+        max_length=constants.LENGTH_OF_FIELDS_USER,
         unique=True,
         validators=[UnicodeUsernameValidator]
     )
     first_name = models.CharField(
         'Имя',
-        max_length=150,
+        max_length=constants.LENGTH_OF_FIELDS_USER,
         blank=False,
         validators=[validate_real_name]
     )
     last_name = models.CharField(
         'Фамилия',
-        max_length=150,
+        max_length=constants.LENGTH_OF_FIELDS_USER,
         blank=False,
         validators=[validate_real_name]
     )
-    password = models.CharField('Пароль', max_length=150)
-    email = models.EmailField('Email', max_length=254, unique=True)
+    password = models.CharField(
+        'Пароль',
+        max_length=constants.LENGTH_OF_FIELDS_USER
+    )
+    email = models.EmailField(
+        'Email',
+        max_length=constants.LENGTH_OF_USER_EMAIL,
+        unique=True
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
+        ordering = ('id',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
