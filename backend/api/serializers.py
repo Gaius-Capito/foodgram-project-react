@@ -228,8 +228,10 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'recipe')
 
     def validate(self, data):
-        data['recipe'] = self.context.get('request').user
-        data['user'] = self.context.get('recipe')
+        user = self.context.get('request').user
+        recipe = self.context.get('recipe')
+        data['recipe'] = recipe
+        data['user'] = user
         if ShoppingCart.objects.filter(user=user,
                                        recipe=recipe).exists():
             raise serializers.ValidationError({
