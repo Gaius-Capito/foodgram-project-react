@@ -47,6 +47,12 @@ class FavoriteSerializer(serializers.ModelSerializer):
                 'errors': 'Рецепт уже добавлен в избранное'})
         return data
 
+    def to_representation(self, instance):
+        return RecipeToRepresentationSerializer(
+            instance.recipe,
+            context={'request': self.context.get('request')}
+        ).data
+
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -239,8 +245,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        requset = self.context.get('request')
         return RecipeToRepresentationSerializer(
             instance.recipe,
-            context={'request': requset}
+            context={'request': self.context.get('request')}
         ).data

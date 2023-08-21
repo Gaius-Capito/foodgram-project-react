@@ -3,6 +3,7 @@ from django.shortcuts import HttpResponse, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -63,27 +64,27 @@ class SubscribeAPIView(APIView):
         if request.user == author:
             return Response(
                 {'errors': 'Подписка на самого себя невозможна'},
-                status=status.HTTP_400_BAD_REQUEST)
-        subscription = Subscribe.objects.filter(
-            author=author, user=request.user)
-        if subscription.exists():
-            return Response(
-                {'errors': 'Вы подписаны на этого автора'},
-                status=status.HTTP_400_BAD_REQUEST)
-        queryset = Subscribe.objects.create(author=author, user=request.user)
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        data = {'author': author.id}
         serializer = SubscribeCreateDeleteSerializer(
-            queryset, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            data=data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, author_id):
         user = request.user
         author = get_object_or_404(User, id=author_id)
-        subscription = Subscribe.objects.filter(
-            author=author, user=user)
+        subscription = Subscribe.objects.filter(author=author, user=user)
         if not subscription.exists():
             return Response(
                 {'errors': 'Вы не подписаны на этого автора'},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

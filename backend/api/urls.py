@@ -10,14 +10,14 @@ router.register('recipes', views.RecipeViewSet, basename='recipes')
 router.register(
     r'recipes/(?P<recipe_id>\d+)/favorite',
     views.FavoriteViewSet, basename='favorite')
-router.register(
-    'users/subscriptions',
-    views.SubscriptionsViewSet, basename='subscriptions')
 router.register('ingredients', views.IngredientViewSet, basename='ingredients')
 router.register(
     r'recipes/(?P<recipe_id>\d+)/shopping_cart',
     views.ShoppingCartViewSet, basename='shopping_cart')
 router.register('tags', views.TagViewSet, basename='tags')
+router.register(
+    'users/subscriptions',
+    views.SubscriptionsViewSet, basename='subscriptions')
 
 
 urlpatterns = [
@@ -27,4 +27,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
-    path('users/<int:author_id>/subscribe/', views.SubscribeAPIView.as_view())]
+    # path('users/subscriptions/', views.SubscriptionsListAPIView.as_view()),
+    path('users/<int:author_id>/subscribe/', views.SubscribeAPIView.as_view()),
+
+]
