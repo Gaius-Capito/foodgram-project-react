@@ -14,7 +14,7 @@ class Command(BaseCommand):
         csv_ingredients = Path(settings.BASE_DIR) / 'data' / 'ingredients.csv'
         csv_tags = Path(settings.BASE_DIR) / 'data' / 'tags.csv'
         if not csv_ingredients.exists():
-            raise CommandError(f'Файл csv_ingredients не существует.')
+            raise CommandError('Файл csv_ingredients не существует.')
 
         with open(csv_ingredients, 'r', encoding='utf-8') as ing_file:
             reader = csv.reader(ing_file, delimiter=',')
@@ -32,7 +32,7 @@ class Command(BaseCommand):
                 self.style.SUCCESS('Ингредиенты успешно загружены'))
 
         if not csv_tags.exists():
-            raise CommandError(f'Файл csv_tags не существует.')
+            raise CommandError('Файл csv_tags не существует.')
 
         with open(csv_tags, 'r', encoding='utf-8') as ing_file:
             reader = csv.reader(ing_file, delimiter=',')

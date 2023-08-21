@@ -17,8 +17,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        return (request.user.is_authenticated and
-                request.user.follower.filter(author=obj).exists())
+        return (request.user.is_authenticated
+                and request.user.follower.filter(author=obj).exists())
 
 
 class RecipeToRepresentationSerializer(serializers.ModelSerializer):
@@ -155,8 +155,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
-        return (request.user.is_authenticated and
-                obj.shopping_carts.filter(user=request.user).exists())
+        return (request.user.is_authenticated
+                and obj.shopping_carts.filter(user=request.user).exists())
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
