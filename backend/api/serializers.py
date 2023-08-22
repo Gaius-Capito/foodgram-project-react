@@ -60,8 +60,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class SubscribeGetSerializer(serializers.ModelSerializer):
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
+class SubscribeGetSerializer(UserSerializer):
     recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
@@ -70,26 +69,26 @@ class SubscribeGetSerializer(serializers.ModelSerializer):
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count')
 
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Subscribe.objects.filter(
-            user=request.user, author=obj).exists()
-
     def get_recipes(self, obj):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        recipes = Recipe.objects.filter(author=obj)
+        recipes = obj.recipe.all()
         limit = request.query_params.get('recipes_limit')
+        if limit:
+            try:
+                limit = int(limit)
+            except ValueError:
+                raise serializers.ValidationError(
+                    {'recipes_limit': 'Значение параметра должно быть int.'}
+                )
         if limit:
             recipes = recipes[:int(limit)]
         return RecipeReadSerializer(
             recipes, many=True, context={'request': request}).data
 
     def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj).count()
+        return obj.recipe.all().count()
 
 
 class SubscribeCreateDeleteSerializer(serializers.ModelSerializer):
@@ -99,29 +98,40 @@ class SubscribeCreateDeleteSerializer(serializers.ModelSerializer):
         fields = ('author', 'id')
 
     def validate(self, data):
-        user = self.context.get('request').user
+        user = data.get('user')
         author = data.get('author')
 
         if self.context.get('request').method == 'POST':
             if Subscribe.objects.filter(user=user, author=author).exists():
-                raise serializers.ValidationError(
+                raise ValidationError(
                     "Вы уже подписаны на автора")
-        elif self.context.get('request').method == 'DELETE':
-            if not Subscribe.objects.filter(user=user, author=author).exists():
-                raise serializers.ValidationError(
-                    "Вы не подписаны на этого автора")
         if user == author:
             raise ValidationError(
                 detail='Подписка на самого себя невозможна',
                 code=status.HTTP_400_BAD_REQUEST,
             )
-
         return data
+
+
+class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
+
+    class Meta:
+        model = IngredientInRecipe
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all()
+    )
+    amount = serializers.IntegerField(
+        min_value=constants.LENGTH_OF_MIN_VALUE,
+        max_value=constants.LENGTH_OF_MAX_AMOUNT
     )
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -136,7 +146,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 class RecipeReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=False, many=True)
     author = UserSerializer(read_only=True, many=False)
-    ingredients = IngredientInRecipeSerializer(
+    ingredients = IngredientInRecipeReadSerializer(
         many=True,
         source='ingredient')
     is_favorited = serializers.SerializerMethodField()
