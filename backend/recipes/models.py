@@ -20,7 +20,7 @@ class Tag(models.Model):
     )
     color = models.CharField(
         'HEX',
-        max_length=7,
+        max_length=constants.LENGTH_OF_HEX_FIELD,
         null=True,
         validators=[
             RegexValidator(
@@ -90,9 +90,9 @@ class Recipe(models.Model):
         default=1,
         verbose_name='Время приготовления',
         validators=[MinValueValidator(
-            1, message='Слишком быстро готовится.'
+            constants.LENGTH_OF_MIN_VALUE, message='Слишком быстро готовится.'
         ), MaxValueValidator(
-            1500, message='Слишком долго готовить'
+            constants.LENGTH_OF_MAX_TIME, message='Слишком долго готовить'
         )]
     )
     pub_date = models.DateTimeField(
@@ -123,9 +123,11 @@ class IngredientInRecipe(models.Model):
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         validators=[MinValueValidator(
-            1, message='Обратите внимание на количество'
+            constants.LENGTH_OF_MIN_VALUE,
+            message='Обратите внимание на количество'
         ), MaxValueValidator(
-            5500, message='Слишком большое количество'
+            constants.LENGTH_OF_MAX_AMOUNT,
+            message='Слишком большое количество'
         )]
     )
 

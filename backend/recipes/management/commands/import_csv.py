@@ -18,8 +18,7 @@ class Command(BaseCommand):
 
         with open(csv_ingredients, 'r', encoding='utf-8') as ing_file:
             reader = csv.reader(ing_file, delimiter=',')
-            for row in reader:
-                name, measurement_unit = row
+            for name, measurement_unit in reader:
                 ingredient, created = Ingredient.objects.get_or_create(
                     name=name,
                     measurement_unit=measurement_unit
@@ -36,8 +35,7 @@ class Command(BaseCommand):
 
         with open(csv_tags, 'r', encoding='utf-8') as ing_file:
             reader = csv.reader(ing_file, delimiter=',')
-            for row in reader:
-                name, slug, color = row
+            for name, slug, color in reader:
                 tag, created = Tag.objects.get_or_create(
                     name=name,
                     slug=slug,

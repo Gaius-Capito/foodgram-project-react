@@ -7,13 +7,12 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingCart, Tag)
 from users.models import Subscribe, User
-
 from .filters import IngredientFilter, RecipeFilter
-from .mixins import ListRetrieveViewSet
 from .pagination import PageLimitPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
@@ -24,7 +23,9 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().select_related(
+        'author'
+    ).prefetch_related('tags', 'ingredients')
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     serializer_class = RecipeCreateSerializer
@@ -42,6 +43,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def send_message(ingredients):
+        text = 'Список покупок:\n'
+        for item in ingredients:
+            text += (
+                f'{item["ingredient__name"]} - '
+                f'{item["amount"]} {item["ingredient__measurement_unit"]}\n'
+            )
+
+        response = HttpResponse(text, content_type='text/plain')
+        response['Content-Disposition'] = (
+            'attachment; filename=shopping_list.txt'
+        )
+        return response
 
     @action(
         detail=True,
@@ -103,19 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe__shopping_carts__user=request.user).values(
             'ingredient__name', 'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount')).order_by('ingredient__name')
-
-        text = 'Список покупок:\n'
-        for item in ingredients:
-            text += (
-                f'{item["ingredient__name"]} - '
-                f'{item["amount"]} {item["ingredient__measurement_unit"]}\n'
-            )
-
-        response = HttpResponse(text, content_type='text/plain')
-        response['Content-Disposition'] = (
-            'attachment; filename=shopping_list.txt'
-        )
-        return response
+        return self.send_message(ingredients)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -123,14 +127,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeCreateSerializer
 
 
-class TagViewSet(ListRetrieveViewSet):
+class TagViewSet(ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
 
 
-class IngredientViewSet(ListRetrieveViewSet):
+class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = IngredientSerializer
@@ -146,9 +150,7 @@ class SubscriptionsListView(ListAPIView):
     queryset = Subscribe.objects.all()
 
     def get_queryset(self):
-        user = self.request.user
-        new_queryset = User.objects.all().filter(author__user=user)
-        return new_queryset
+        return User.objects.all().filter(author__user=self.request.user)
 
 
 class SubscribeAPIView(APIView):
@@ -156,19 +158,12 @@ class SubscribeAPIView(APIView):
 
     def post(self, request, author_id):
         author = get_object_or_404(User, id=author_id)
-        if request.user == author:
-            return Response(
-                {'errors': 'Подписка на самого себя невозможна'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         data = {'author': author.id}
         serializer = SubscribeCreateDeleteSerializer(
             data=data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, author_id):
         user = request.user
