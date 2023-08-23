@@ -18,6 +18,9 @@ Foodgram - это веб-платформа с функциональным API,
 ### Документация
 - http://158.160.18.25/api/docs/
 
+### Стек
+Python, Django, Django Rest Framework, Docker, Gunicorn, NGINX, PostgreSQL, Yandex Cloud
+
 
 ## Запуск проекта через Docker:
 
