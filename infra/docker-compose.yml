@@ -3,12 +3,12 @@ version: '3.8'
 services:
 
   frontend:
-    image: pashkavrn/foodgram_frontend
+    image: gaiuscapito/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
       - db
-    container_name: foodgram_frontend
+    container_name: frontend
 
 
   db:
@@ -29,7 +29,7 @@ services:
     env_file:
       - ./.env
     restart: always
-    container_name: foodgram_backend
+    container_name: backend
 
 
   nginx:
