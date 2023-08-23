@@ -46,17 +46,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def send_message(ingredients):
-        text = 'Список покупок:\n'
+        text_parts = ['Список покупок:\n']
+
         for item in ingredients:
-            text += (
-                f'{item["ingredient__name"]} - '
-                f'{item["amount"]} {item["ingredient__measurement_unit"]}\n'
-            )
+            ingredient_name = item["ingredient__name"]
+            amount = item["amount"]
+            measurement_unit = item["ingredient__measurement_unit"]
+            text_parts.append(
+                f'{ingredient_name} - {amount} {measurement_unit}\n')
+
+        text = ''.join(text_parts)
 
         response = HttpResponse(text, content_type='text/plain')
-        response['Content-Disposition'] = (
-            'attachment; filename=shopping_list.txt'
-        )
+        response[
+            'Content-Disposition'] = 'attachment; filename=shopping_list.txt'
         return response
 
     @action(
