@@ -21,7 +21,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
         cd backend/
-        pip install -r api_yamdb/requirements.txt
+        pip install -r requirements.txt
 
     - name: Check with flake8
       run: flake8 --ignore F401,F403,F405,E501,W605,W503,I001,I004,I005 .
