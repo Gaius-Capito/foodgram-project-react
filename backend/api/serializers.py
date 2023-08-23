@@ -82,7 +82,6 @@ class SubscribeGetSerializer(UserSerializer):
                 raise serializers.ValidationError(
                     {'recipes_limit': 'Значение параметра должно быть int.'}
                 )
-        if limit:
             recipes = recipes[:int(limit)]
         return RecipeReadSerializer(
             recipes, many=True, context={'request': request}).data
@@ -133,14 +132,10 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         min_value=constants.LENGTH_OF_MIN_VALUE,
         max_value=constants.LENGTH_OF_MAX_AMOUNT
     )
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit'
-    )
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        fields = ('id', 'amount')
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):

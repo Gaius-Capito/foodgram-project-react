@@ -16,13 +16,11 @@ class User(AbstractUser):
     first_name = models.CharField(
         'Имя',
         max_length=constants.LENGTH_OF_FIELDS_USER,
-        blank=False,
         validators=[validate_real_name]
     )
     last_name = models.CharField(
         'Фамилия',
         max_length=constants.LENGTH_OF_FIELDS_USER,
-        blank=False,
         validators=[validate_real_name]
     )
     password = models.CharField(

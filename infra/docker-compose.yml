@@ -3,11 +3,13 @@ version: '3.8'
 services:
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: pashkavrn/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
+    depends_on:
+      - db
+    container_name: foodgram_frontend
+
 
   db:
     image: postgres:13.0-alpine
@@ -18,10 +20,7 @@ services:
       - ./.env
 
   backend:
-    build: 
-      context: ../backend
-      dockerfile: Dockerfile
-    restart: always
+    image: gaiuscapito/foodgram_backend
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -29,6 +28,8 @@ services:
       - db
     env_file:
       - ./.env
+    restart: always
+    container_name: foodgram_backend
 
 
   nginx:
