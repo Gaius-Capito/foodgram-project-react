@@ -30,9 +30,8 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'author', 'tags',)
 
     def ingredient_list(self, obj):
-        ingredients = ', '.join([str(ingredient) for ingredient in
-                                 obj.ingredients.all()])
-        return ingredients
+        return ', '.join([str(ingredient) for ingredient
+                          in obj.ingredients.all()])
 
     ingredient_list.short_description = 'Ингредиенты'
 
