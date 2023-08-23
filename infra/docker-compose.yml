@@ -3,7 +3,9 @@ version: '3.8'
 services:
 
   frontend:
-    image: gaiuscapito/foodgram_frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -20,7 +22,9 @@ services:
       - ./.env
 
   backend:
-    image: gaiuscapito/foodgram_backend
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
